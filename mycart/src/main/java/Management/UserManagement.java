@@ -9,7 +9,15 @@ import Daoclasses.UserDAO;
 
 
 public class UserManagement {
-
+        public boolean validateEmail(String email) {
+                    String regex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+    
+                    Pattern pattern = Pattern.compile(regex);
+        
+                    Matcher matcher = pattern.matcher(email);
+        
+                    return matcher.matches();
+            }
     private Daoclasses.UserDAO userDAO;
 
     public UserManagement() {
@@ -70,7 +78,14 @@ public class UserManagement {
 
         User user = new User();
         user.setUserName(name);
-        user.setUserEmail(email);
+        
+        if (validateEmail(email)) {
+        	user.setUserEmail(email);
+        }
+        else {
+        	System.out.println("Invalid email address.");
+        }
+        
         user.setUserPassword(password);
         user.setUserPhone(phone);
         user.setAddress(address);
