@@ -59,7 +59,7 @@ public class Main {
      }
 
   private static void displayMenu() {
-    	        System.out.println("1. Add use details");
+    	        System.out.println("1. Add user details");
     	        System.out.println("2. Add customer details");
     	        System.out.println("3. Add product details");
     	        System.out.println("4. Add orderitem details");
