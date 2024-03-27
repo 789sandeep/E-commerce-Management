@@ -2,29 +2,44 @@ package Management;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.mycartt.User;
 
 import Daoclasses.UserDAO;
 
+class InvalidEmailException extends Exception {
+    public InvalidEmailException(String email) {
+        super("The email '" + email + "' is invalid.");
+    }
+}
+
+class InvalidMobileNumberException extends Exception {
+    public InvalidMobileNumberException(String number) {
+        super("The mobile number '" + number + "' is invalid.");
+    }
+}
 
 public class UserManagement {
-        public boolean validateEmail(String email) {
-                    String regex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
-    
-                    Pattern pattern = Pattern.compile(regex);
-        
-                    Matcher matcher = pattern.matcher(email);
-        
-                    return matcher.matches();
-            }
+	
+	public static boolean isValidEmail(String email) {
+        // Regular expression pattern for email validation
+        String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
+        Pattern pattern = Pattern.compile(EMAIL_REGEX);
+        Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
+    }
+	
+	
+	
     private Daoclasses.UserDAO userDAO;
 
     public UserManagement() {
         this.userDAO = new UserDAO();
     }
 
-    public void manageUsers() {
+    public void manageUsers() throws InvalidEmailException {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
@@ -32,8 +47,7 @@ public class UserManagement {
             System.out.println("2. Get User by ID");
             System.out.println("3. Update User");
             System.out.println("4. Delete User");
-            System.out.println("5. List All Users");
-            System.out.println("6. Exit");
+            System.out.println("5. Exit");
             System.out.print("Enter your choice: ");
             int choice = scanner.nextInt();
             scanner.nextLine(); // consume newline
@@ -52,9 +66,6 @@ public class UserManagement {
                     deleteUser(scanner);
                     break;
                 case 5:
-                    listAllUsers();
-                    break;
-                case 6:
                     System.out.println("Exiting...");
                     scanner.close();
                     return;
@@ -64,7 +75,7 @@ public class UserManagement {
         }
     }
 
-    private void addUser(Scanner scanner) {
+    private void addUser(Scanner scanner) throws InvalidEmailException {
         System.out.print("Enter user name: ");
         String name = scanner.nextLine();
         System.out.print("Enter user email: ");
@@ -79,11 +90,14 @@ public class UserManagement {
         User user = new User();
         user.setUserName(name);
         
-        if (validateEmail(email)) {
-        	user.setUserEmail(email);
-        }
-        else {
-        	System.out.println("Invalid email address.");
+        try {
+            if (isValidEmail(email)) {
+            	user.setUserEmail(email);
+            } else {
+                throw new InvalidEmailException(email);
+            }
+        } catch (InvalidEmailException e) {
+            System.out.println(e.getMessage());
         }
         
         user.setUserPassword(password);
@@ -96,7 +110,7 @@ public class UserManagement {
     private void getUserById(Scanner scanner) {
         System.out.print("Enter user ID: ");
         int userId = scanner.nextInt();
-        scanner.nextLine(); // consume newline
+        scanner.nextLine(); 
 
         User user = userDAO.getUserById(userId);
         if (user != null) {
@@ -109,7 +123,7 @@ public class UserManagement {
     private void updateUser(Scanner scanner) {
         System.out.print("Enter user ID: ");
         int userId = scanner.nextInt();
-        scanner.nextLine(); // consume newline
+        scanner.nextLine(); 
 
         User user = userDAO.getUserById(userId);
         if (user != null) {
@@ -123,9 +137,17 @@ public class UserManagement {
             String newPhone = scanner.nextLine();
             System.out.print("Enter new user address: ");
             String newAddress = scanner.nextLine();
-
+            
+            try {
+                if (isValidEmail(newEmail)) {
+                	user.setUserEmail(newEmail);
+                } else {
+                    throw new InvalidEmailException(newEmail);
+                }
+            } catch (InvalidEmailException e) {
+                System.out.println(e.getMessage());
+            }
             user.setUserName(newName);
-            user.setUserEmail(newEmail);
             user.setUserPassword(newPassword);
             user.setUserPhone(newPhone);
             user.setAddress(newAddress);
@@ -144,18 +166,6 @@ public class UserManagement {
 
         userDAO.deleteUser(userId);
         System.out.println("User deleted successfully.");
-    }
-
-    private void listAllUsers() {
-        List<User> users = userDAO.getAllUsers();
-        if (users.isEmpty()) {
-            System.out.println("No users found.");
-        } else {
-            System.out.println("List of Users:");
-            for (User user : users) {
-                System.out.println(user);
-            }
-        }
     }
 }
 
